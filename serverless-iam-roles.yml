@@ -39,3 +39,9 @@ s3PutObject:
   Action:
     - s3:PutObject
   Resource: arn:aws:s3:::${self:provider.environment.BUCKET_NAME}/*
+
+xrayPutSegments:
+  Effect: Allow
+  Action:
+    - xray:PutTraceSegments
+  Resource: '*'

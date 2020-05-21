@@ -19,6 +19,10 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
 
+  tracing:
+    lambda: true
+    apiGateway: true
+
 custom:
   documentation:
     api:
@@ -50,6 +54,7 @@ functions:
     iamRoleStatements:
       - ${file(serverless-iam-roles.yml):dynamodbGetItem}
       - ${file(serverless-iam-roles.yml):dynamodbQuery}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
 
   CreateTodo:
@@ -68,6 +73,7 @@ functions:
               'application/json': CreateItemReq
     iamRoleStatements:
       - ${file(serverless-iam-roles.yml):dynamodbPutItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
@@ -85,6 +91,7 @@ functions:
               'application/json': UpdateItemReq
     iamRoleStatements:
       - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
@@ -96,6 +103,7 @@ functions:
           authorizer: RS256Auth
     iamRoleStatements:
       - ${file(serverless-iam-roles.yml):dynamodbDeleteItem}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
@@ -108,6 +116,7 @@ functions:
     iamRoleStatements:
       - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
       - ${file(serverless-iam-roles.yml):s3PutObject}
+      - ${file(serverless-iam-roles.yml):xrayPutSegments}
 
 resources:
   Resources:

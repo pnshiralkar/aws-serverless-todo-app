@@ -1,10 +1,12 @@
 import {updateUrl} from "../dataLayer/TodoItem";import * as uuid from 'uuid'
 
 import * as AWS from "aws-sdk";
+const AWSXRay = require('aws-xray-sdk');
+const XAWS = AWSXRay.captureAWS(AWS);
 const todoTable = process.env.TODO_TABLE
 
 export const generateUploadUrl = async (userId: string, todoId: string): Promise<string> => {
-    const s3 = new AWS.S3()
+    const s3 = new XAWS.S3()
     const imageId = uuid.v4()
 
     const url = s3.getSignedUrl('putObject', {

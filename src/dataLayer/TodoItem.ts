@@ -1,5 +1,8 @@
 import * as AWS from "aws-sdk";
-const docClient = new AWS.DynamoDB.DocumentClient()
+const AWSXRay = require('aws-xray-sdk');
+const XAWS = AWSXRay.captureAWS(AWS);
+
+const docClient = new XAWS.DynamoDB.DocumentClient()
 
 export const create = async (table, item)=>{
     await docClient.put({
@@ -60,7 +63,7 @@ export const updateUrl = async (table, userId, todoId, url): Promise<void> => {
             "ownerId": "" + userId,
             "todoId": "" + todoId
         },
-        UpdateExpression: 'set imageUrl = :url',
+        UpdateExpression: 'set attachmentUrl = :url',
         ExpressionAttributeValues: {
             ':url': url,
         }
