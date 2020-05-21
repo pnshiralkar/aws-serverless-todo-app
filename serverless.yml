@@ -4,6 +4,8 @@ service:
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
 
 provider:
   name: aws
@@ -16,6 +18,21 @@ provider:
 
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
+
+custom:
+  documentation:
+    api:
+      info:
+        version: v1.0.1
+        title: Todo App API
+        description: Serverless To-Do application
+    models:
+      - name: CreateItemReq
+        contentType: application/json
+        schema: ${file(models/CreateItem.json)}
+      - name: UpdateItemReq
+        contentType: application/json
+        schema: ${file(models/UpdateItem.json)}
 
 functions:
 
@@ -43,6 +60,12 @@ functions:
           path: todos
           cors: true
           authorizer: RS256Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new Todo item
+            description: Create a new Todo item
+            requestModels:
+              'application/json': CreateItemReq
     iamRoleStatements:
       - ${file(serverless-iam-roles.yml):dynamodbPutItem}
 
@@ -54,6 +77,12 @@ functions:
           path: todos/{todoId}
           cors: true
           authorizer: RS256Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Update a Todo item
+            description: Update a Todo item
+            requestModels:
+              'application/json': UpdateItemReq
     iamRoleStatements:
       - ${file(serverless-iam-roles.yml):dynamodbUpdateItem}
 
@@ -140,3 +169,23 @@ resources:
               Action: 's3:GetObject'
               Resource: 'arn:aws:s3:::${self:provider.environment.BUCKET_NAME}/*'
         Bucket: !Ref AttachmentStorageBucket
+
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
+
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
